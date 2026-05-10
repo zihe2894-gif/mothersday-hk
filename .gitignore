@@ -7,4 +7,4 @@ uploads/
 .netlify
 .wrangler
 dist.tar.gz
-carnation_*.glb
+carnation*.glb
