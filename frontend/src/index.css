@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  @apply overflow-hidden;
+  background: linear-gradient(135deg, #fff5f8 0%, #ffe0ec 30%, #ffd6e4 60%, #fff5f8 100%);
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Noto Serif SC', serif;
+}
+
+/* ===== Card ===== */
+.card-perspective { position: relative; perspective: 1600px; touch-action: none; }
+.card-3d { transform-style: preserve-3d; }
+
+.card-page {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  position: absolute;
+  inset: 0;
+  border-radius: 1.2rem;
+  overflow: hidden;
+}
+
+.card-cover {
+  background: #fff5f8;
+  border: 1px solid rgba(255,150,200,0.12);
+  z-index: 3;
+}
+
+.card-photos {
+  background: #fff5f8;
+  border: 1px solid rgba(255,150,200,0.06);
+  z-index: 2;
+}
+
+.card-blessings {
+  background: #fff5f8;
+  border: 1px solid rgba(255,150,200,0.06);
+  z-index: 1;
+}
+
+/* ===== Card glow - pink ===== */
+.card-glow {
+  box-shadow:
+    0 0 60px rgba(255,100,160,0.06),
+    0 0 120px rgba(255,50,130,0.03),
+    0 0 0 1px rgba(255,150,200,0.1);
+  border-radius: 1.3rem;
+}
+
+/* ===== Gold foil corners ===== */
+@keyframes goldShimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.gold-corner {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-color: rgba(212,175,55,0.75);
+  z-index: 5;
+  pointer-events: none;
+  animation: goldShimmer 3s ease-in-out infinite;
+}
+.gold-corner.tl {
+  top: 5px; left: 5px;
+  border-top: 3px solid;
+  border-left: 3px solid;
+  border-radius: 12px 0 0 0;
+  background: linear-gradient(135deg, rgba(212,175,55,0.1) 0%, transparent 60%);
+}
+.gold-corner.tr {
+  top: 5px; right: 5px;
+  border-top: 3px solid;
+  border-right: 3px solid;
+  border-radius: 0 12px 0 0;
+  background: linear-gradient(225deg, rgba(212,175,55,0.1) 0%, transparent 60%);
+  animation-delay: 0.5s;
+}
+.gold-corner.bl {
+  bottom: 5px; left: 5px;
+  border-bottom: 3px solid;
+  border-left: 3px solid;
+  border-radius: 0 0 0 12px;
+  background: linear-gradient(45deg, rgba(212,175,55,0.1) 0%, transparent 60%);
+  animation-delay: 1s;
+}
+.gold-corner.br {
+  bottom: 5px; right: 5px;
+  border-bottom: 3px solid;
+  border-right: 3px solid;
+  border-radius: 0 0 12px 0;
+  background: linear-gradient(315deg, rgba(212,175,55,0.1) 0%, transparent 60%);
+  animation-delay: 1.5s;
+}
+
+/* Gold accent lines */
+.gold-line {
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.3), transparent);
+  pointer-events: none;
+}
+
+/* ===== Text ===== */
+.pink-grad {
+  background: linear-gradient(135deg, #ffcce0, #ff6ba8, #ff99c4, #ffcce0);
+  background-size: 300% 300%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradShift 4s ease infinite;
+}
+@keyframes gradShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== Keyframes ===== */
+@keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes heartBeat { 0%,100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.3); opacity: 0.8; } }
+.heartbeat-icon { animation: heartBeat 1.5s ease-in-out infinite; display: inline-block; }
+
+/* ===== Shimmer text - rainbow gradient ===== */
+.shimmer-text {
+  background: linear-gradient(90deg,
+    #ff6ba8, #ff99c4, #ffcce0, #ffd700, #ff99c4, #ff6ba8, #ffcce0, #ffd700
+  );
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerMove 3s linear infinite;
+}
+@keyframes shimmerMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 400% 50%; }
+}
+
+/* ===== Gold edge frame ===== */
+.gold-edge {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6;
+}
+.gold-edge.top {
+  top: 0; left: 8%; right: 8%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.65) 20%, rgba(212,175,55,0.9) 50%, rgba(212,175,55,0.65) 80%, transparent);
+}
+.gold-edge.bottom {
+  bottom: 0; left: 8%; right: 8%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.65) 20%, rgba(212,175,55,0.9) 50%, rgba(212,175,55,0.65) 80%, transparent);
+}
+.gold-edge.left {
+  left: 0; top: 8%; bottom: 8%;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, rgba(212,175,55,0.55) 30%, rgba(212,175,55,0.8) 50%, rgba(212,175,55,0.55) 70%, transparent);
+}
+.gold-edge.right {
+  right: 0; top: 8%; bottom: 8%;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, rgba(212,175,55,0.55) 30%, rgba(212,175,55,0.8) 50%, rgba(212,175,55,0.55) 70%, transparent);
+}
+
+/* ===== Music Player ===== */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes eqBounce { from { height: 20%; } to { height: 80%; } }
+@keyframes statusPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== Canvases ===== */
+canvas.cover-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+}
+canvas.bg-canvas {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: 1;
+}
+canvas.viz-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+  border-radius: 1.2rem;
+}
+
+/* ===== Background ===== */
+.ambient-glow {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 30%, rgba(255,200,220,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(255,180,210,0.08) 0%, transparent 50%);
+}
+.bg-image {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-size: cover; background-position: center;
+  opacity: 0.85;
+  filter: saturate(1.1) brightness(1.05);
+}
+
+/* ===== Nav Arrows ===== */
+.nav-arrow {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  z-index: 20;
+  font-size: 2.5rem;
+  color: rgba(212,175,55,0.2);
+  pointer-events: none;
+  transition: color 0.3s ease;
+  line-height: 1;
+}
+.card-perspective:hover .nav-arrow {
+  color: rgba(212,175,55,0.4);
+}
+
+/* ===== Misc ===== */
+::-webkit-scrollbar { display: none; }
