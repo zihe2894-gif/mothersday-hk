@@ -15,6 +15,7 @@ export default function ArPage({ onExit }) {
   const [modelReady, setModelReady] = useState(false);
   const [modelProgress, setModelProgress] = useState(0);
   const [modelLoadFailed, setModelLoadFailed] = useState(false);
+  const [modelErrorMsg, setModelErrorMsg] = useState('');
 
   const engine = useRef({
     arSession: null,
@@ -130,10 +131,11 @@ export default function ArPage({ onExit }) {
       placer.loadModel(
         () => { setModelReady(true); },
         (pct) => {
-          if (pct === -1) {
+          if (pct === -1 || (typeof pct === 'object' && pct?.error)) {
             setModelProgress(0);
-            setModelLoadFailed(true); // 加载失败，显示重试按钮
-          } else {
+            setModelLoadFailed(true);
+            setModelErrorMsg(pct?.error || '模型加载失败');
+          } else if (typeof pct === 'number') {
             setModelProgress(pct);
           }
         },
@@ -245,7 +247,7 @@ export default function ArPage({ onExit }) {
   }, []);
 
   const loadLabel = modelLoadFailed
-    ? '加载失败，点击重试'
+    ? `加载失败${modelErrorMsg ? ': ' + modelErrorMsg : ''}，点击重试`
     : (modelReady ? '点击放置康乃馨' : `模型加载中 ${modelProgress}%`);
 
   const statusText = {
@@ -315,12 +317,13 @@ export default function ArPage({ onExit }) {
                   const placer = engine.current.placer;
                   if (placer) {
                     setModelLoadFailed(false);
+                    setModelErrorMsg('');
                     setModelProgress(0);
                     placer.loadModel(
                       () => setModelReady(true),
                       (pct) => {
-                        if (pct === -1) { setModelProgress(0); setModelLoadFailed(true); }
-                        else setModelProgress(pct);
+                        if (pct === -1 || (typeof pct === 'object' && pct?.error)) { setModelProgress(0); setModelLoadFailed(true); setModelErrorMsg(pct?.error || ''); }
+                        else if (typeof pct === 'number') setModelProgress(pct);
                       },
                       consumePreloadedModel()
                     );
@@ -382,12 +385,13 @@ export default function ArPage({ onExit }) {
                   const placer = engine.current.placer;
                   if (placer) {
                     setModelLoadFailed(false);
+                    setModelErrorMsg('');
                     setModelProgress(0);
                     placer.loadModel(
                       () => setModelReady(true),
                       (pct) => {
-                        if (pct === -1) { setModelProgress(0); setModelLoadFailed(true); }
-                        else setModelProgress(pct);
+                        if (pct === -1 || (typeof pct === 'object' && pct?.error)) { setModelProgress(0); setModelLoadFailed(true); setModelErrorMsg(pct?.error || ''); }
+                        else if (typeof pct === 'number') setModelProgress(pct);
                       },
                       consumePreloadedModel()
                     );
@@ -396,7 +400,7 @@ export default function ArPage({ onExit }) {
               }}
             >
               {status === 'ready'
-                ? (modelLoadFailed ? '加载失败，点击重试' : (modelReady ? '点击屏幕放置康乃馨' : '模型加载中...'))
+                ? (modelLoadFailed ? `加载失败${modelErrorMsg ? ': ' + modelErrorMsg : ''}，点击重试` : (modelReady ? '点击屏幕放置康乃馨' : '模型加载中...'))
                 : '移动手机扫描地面...'}
             </div>
 

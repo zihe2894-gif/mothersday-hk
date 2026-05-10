@@ -41,7 +41,7 @@ export class ObjectPlacer {
           console.warn(`GLB 加载超时，重试 ${retryCount + 1}/${MAX_RETRIES}`);
           attemptLoad(retryCount + 1);
         } else {
-          onProgress?.(-1); // -1 表示加载失败
+          onProgress?.({ error: `加载超时(${TIMEOUT_MS/1000}s)` });
         }
       }, TIMEOUT_MS);
 
@@ -62,8 +62,9 @@ export class ObjectPlacer {
           console.warn(`GLB 加载失败，重试 ${retryCount + 1}/${MAX_RETRIES}:`, err?.message);
           attemptLoad(retryCount + 1);
         } else {
-          console.error('GLB 加载失败（已重试耗尽）:', err);
-          onProgress?.(-1);
+          const msg = err?.message || err?.toString() || '未知错误';
+          console.error('GLB 加载失败（已重试耗尽）:', msg);
+          onProgress?.({ error: msg });
         }
       };
 
