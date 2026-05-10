@@ -22,7 +22,7 @@ export class ObjectPlacer {
     if (this._carnationModel || this.modelReady) return;
     const loader = new GLTFLoader();
     loader.load(
-      '/carnation.glb',
+      'https://github.com/zihe2894-gif/mothersday-hk/releases/download/v1.0/carnation.glb',
       (gltf) => {
         this._carnationModel = gltf.scene;
         this.modelReady = true;
