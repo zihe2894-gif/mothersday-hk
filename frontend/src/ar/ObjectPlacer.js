@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import { COS_BASE } from '../lib/assets.js';
+import { MODEL_URL } from '../lib/assets.js';
 
 const FLOWER_SCALE = 0.3;
 
@@ -25,7 +25,7 @@ export class ObjectPlacer {
 
     const MAX_RETRIES = 2;
     const TIMEOUT_MS = 30000;
-    const url = `${COS_BASE}/carnation_opt.glb`;
+    const url = MODEL_URL;
 
     const attemptLoad = (retryCount) => {
       const dracoLoader = new DRACOLoader();

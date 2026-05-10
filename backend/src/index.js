@@ -3,7 +3,9 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import https from 'https';
 import { fileURLToPath } from 'url';
+import serverless from 'serverless-http';
 import { config } from './config.js';
 import { initDB } from './db/init.js';
 import { visitTracker } from './middleware/visitTracker.js';
@@ -14,6 +16,8 @@ import shareRouter from './routes/share.js';
 import statsRouter from './routes/stats.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const COS_BASE = 'https://mothersday-1388989467.cos.accelerate.myqcloud.com';
 
 const app = express();
 
@@ -50,6 +54,23 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// COS 代理 - 解决浏览器跨域问题
+app.get('/api/cos/*', (req, res) => {
+  const cosPath = req.path.replace('/api/cos/', '');
+  const cosUrl = `${COS_BASE}/${cosPath}`;
+  https.get(cosUrl, (cosRes) => {
+    if (cosRes.statusCode !== 200) {
+      res.status(cosRes.statusCode).json({ error: 'COS proxy failed' });
+      return;
+    }
+    res.set('Content-Type', cosRes.headers['content-type'] || 'application/octet-stream');
+    res.set('Cache-Control', 'public, max-age=31536000');
+    cosRes.pipe(res);
+  }).on('error', (err) => {
+    res.status(502).json({ error: 'COS proxy error' });
+  });
+});
+
 // SPA fallback - 前端路由
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
@@ -58,12 +79,14 @@ app.get('/', (req, res) => {
 // 错误处理
 app.use(errorHandler);
 
-// 启动
+// SCF 入口
+export const main_handler = serverless(app);
+
+// 本地开发启动
 async function start() {
   try {
     await initDB();
     console.log('Database initialized');
-
     app.listen(config.port, () => {
       console.log(`Server running on http://localhost:${config.port}`);
       console.log(`CORS origin: ${config.corsOrigin}`);
@@ -74,4 +97,7 @@ async function start() {
   }
 }
 
-start();
+// 非 SCF 环境直接启动
+if (!process.env.SCF_FUNCTION_NAME) {
+  start();
+}
