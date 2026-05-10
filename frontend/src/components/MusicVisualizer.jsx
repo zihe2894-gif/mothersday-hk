@@ -1,16 +1,25 @@
 import React, { useRef, useEffect } from 'react';
 
-// 模块级持久引用 — 组件卸载后 AudioContext 连接链不销毁，
-// 确保从 BlessingsPage 离开再返回时分析器仍然可用，音乐不会中断
-let _ctx = null;
-let _analyser = null;
-let _dataArray = null;
+// 模拟频率数据 — 视觉上像是对音乐的反应，但实际不会劫持音频输出
+function generateBars(time, playing) {
+  const bars = 64;
+  const result = new Float32Array(bars);
+  if (!playing) return result;
+  for (let i = 0; i < bars; i++) {
+    // 频率区域分布：低频(0-15) 中频(16-47) 高频(48-63)
+    const phase = time * (0.5 + i / bars * 1.5) + i * 0.8;
+    const envelope = i < 16
+      ? 0.5 + 0.5 * Math.sin(time * 0.4 + i * 0.3)
+      : 0.3 + 0.7 * Math.sin(time * 0.6 + i * 0.15);
+    const peak = Math.max(0, Math.sin(phase));
+    result[i] = Math.pow(peak, 2) * envelope * (0.6 + 0.4 * Math.sin(time * 0.2));
+  }
+  return result;
+}
 
 export default function MusicVisualizer({ audioRef }) {
   const canvasRef = useRef(null);
-  const analyserRef = useRef(null);
   const animRef = useRef(null);
-  const connectedRef = useRef(false);
   const smoothData = useRef([]);
   const ripplePhase = useRef(0);
 
@@ -30,97 +39,27 @@ export default function MusicVisualizer({ audioRef }) {
     resize();
     window.addEventListener('resize', resize);
 
-    let audioCtx = null;
-    let analyser = null;
-    let dataArray = null;
-
-    // 如果从之前挂载恢复了持久连接，直接使用
-    if (_analyser) {
-      analyser = _analyser;
-      dataArray = _dataArray;
-      smoothData.current = new Float32Array(64);
-      connectedRef.current = true; // 防止 init() 再次尝试创建 MediaElementSource
-    }
-
-    function init() {
-      if (connectedRef.current) return;
-      const audio = audioRef?.current;
-      if (!audio || !audio.src) return;
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const src = audioCtx.createMediaElementSource(audio);
-        src.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const bars = 64;
-        smoothData.current = new Float32Array(bars);
-        analyserRef.current = analyser;
-        connectedRef.current = true;
-
-        // 持久存储，组件卸载再挂载后仍可用
-        _ctx = audioCtx;
-        _analyser = analyser;
-        _dataArray = dataArray;
-
-        // Auto-resume AudioContext if suspended by browser
-        audioCtx.onstatechange = () => {
-          if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-          }
-        };
-      } catch (e) { /* ignore */ }
-    }
-
-    const audio = audioRef?.current;
-    if (audio) {
-      audio.addEventListener('play', init);
-      const iv = setInterval(() => {
-        if (audio && !audio.paused && !connectedRef.current) init();
-      }, 600);
-      const stop = setInterval(() => {
-        if (connectedRef.current) { clearInterval(iv); clearInterval(stop); }
-      }, 200);
-    }
-
     function draw() {
       ctx.clearRect(0, 0, w, h);
       ripplePhase.current += 0.02;
 
-      if (!analyser || !dataArray) {
-        // Idle — soft floating rings with ripple
-        const cx = w / 2, cy = h / 2;
-        for (let ring = 0; ring < 4; ring++) {
-          const r = 20 + ring * 18 + Math.sin(Date.now() * 0.001 + ring) * 5;
-          ctx.beginPath();
-          ctx.arc(cx, cy, r, 0, Math.PI * 2);
-          ctx.strokeStyle = `hsla(340, 70%, 70%, ${0.04 + Math.sin(Date.now() * 0.002 + ring) * 0.02})`;
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        }
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
-        grad.addColorStop(0, 'rgba(255,150,200,0.04)');
-        grad.addColorStop(1, 'rgba(255,150,200,0)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(cx - 30, cy - 30, 60, 60);
-        animRef.current = requestAnimationFrame(draw);
-        return;
-      }
+      const now = Date.now() / 1000;
+      const audio = audioRef?.current;
+      const playing = audio ? !audio.paused : false;
 
-      analyser.getByteFrequencyData(dataArray);
+      const rawData = generateBars(now, playing);
+      if (!smoothData.current.length) {
+        smoothData.current = new Float32Array(64);
+      }
+      for (let i = 0; i < 64; i++) {
+        smoothData.current[i] += (rawData[i] - smoothData.current[i]) * 0.2;
+      }
 
       const bars = 64;
       const barW = (w / bars) * 0.7;
       const gap = (w / bars) * 0.3;
       const startX = (w / 2) - (bars / 2) * (barW + gap);
       const centerY = h / 2;
-
-      for (let i = 0; i < bars; i++) {
-        const raw = dataArray[i] / 255;
-        smoothData.current[i] += (raw - smoothData.current[i]) * 0.25;
-      }
 
       for (let i = 0; i < bars; i++) {
         const val = smoothData.current[i];
@@ -178,9 +117,6 @@ export default function MusicVisualizer({ audioRef }) {
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
-      if (audio) audio.removeEventListener('play', init);
-      // 不关闭 audioCtx：关闭会断开音频路由链，导致音乐中断
-      // 让 AudioContext 保持存活，返回 BlessingsPage 时 visualizer 直接重连即可
     };
   }, [audioRef]);
 
