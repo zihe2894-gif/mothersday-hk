@@ -5,6 +5,7 @@ import BackgroundHearts from './components/BackgroundHearts.jsx';
 import Petals from './components/Petals.jsx';
 import MusicPlayer from './components/MusicPlayer.jsx';
 import ShareButton from './components/ShareButton.jsx';
+import { COS_BASE } from './lib/assets.js';
 
 export default function App() {
   const [mode, setMode] = useState('entry'); // entry | card | ar
@@ -35,7 +36,7 @@ export default function App() {
         {/* 背景图片 */}
         <div className="fixed inset-0 z-0"
           style={{
-            backgroundImage: 'url(/bg/pexels-trung-nguyen-2147535019-35667488.jpg)',
+            backgroundImage: `url(${COS_BASE}/pexels-trung-nguyen-2147535019-35667488.jpg)`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             opacity: 0.15,
@@ -62,7 +63,7 @@ export default function App() {
           />
         </div>
         {/* 背景音乐 */}
-        <audio ref={audioRef} src="/music/background.mp3" loop preload="auto" />
+        <audio ref={audioRef} src={`${COS_BASE}/background.mp3`} loop preload="auto" />
         <MusicPlayer audioRef={audioRef} />
         <ShareButton />
         <button
@@ -90,7 +91,7 @@ export default function App() {
       {/* 背景图片 */}
       <div className="fixed inset-0 z-0"
         style={{
-          backgroundImage: 'url(/bg/pexels-trung-nguyen-2147535019-35667488.jpg)',
+          backgroundImage: `url(${COS_BASE}/pexels-trung-nguyen-2147535019-35667488.jpg)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.12,

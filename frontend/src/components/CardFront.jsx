@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import CoverParticles from './CoverParticles.jsx';
+import { COS_BASE } from '../lib/assets.js';
 
 const COVERS = ['c304e4c06b2db7e60458ea102259c59e.jpg', 'ed5c6fa36973d1c2142575495b025245.jpg'];
 
@@ -11,7 +12,7 @@ export default function CardFront() {
   return (
     <div className="card-page card-cover flex flex-col items-center justify-center p-0 select-none overflow-hidden relative">
       <img
-        src={`/picture/${coverImg}`}
+        src={`${COS_BASE}/${coverImg}`}
         alt="母亲节快乐"
         className="w-full h-full object-contain"
         draggable={false}

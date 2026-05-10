@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { COS_BASE } from '../lib/assets.js';
 
 const PHOTOS = [
   'pexels-nguyen-ngoc-tien-1321490019-32071930.jpg',
@@ -64,7 +65,7 @@ export default function PhotoSpread({ visible }) {
               >
                 <div className="rounded-md overflow-hidden" style={{ background: '#fef8f5', aspectRatio: '1' }}>
                   <img
-                    src={`/photos/${file}`}
+                    src={`${COS_BASE}/${file}`}
                     alt={`photo ${i + 1}`}
                     className="w-full h-full object-contain"
                     draggable={false}
@@ -89,7 +90,7 @@ export default function PhotoSpread({ visible }) {
               style={{ padding: '6px' }}
               onClick={closeEnlarge}
             >
-              <img src={`/photos/${PHOTOS[enlarged]}`} alt="enlarged"
+              <img src={`${COS_BASE}/${PHOTOS[enlarged]}`} alt="enlarged"
                 className="w-auto h-auto max-w-full max-h-[82vh] object-contain rounded-xl" />
               {/* Bottom close button */}
               <button
