@@ -1,7 +1,8 @@
 export const COS_BASE = 'https://mothersday-1388989467.cos.accelerate.myqcloud.com';
 
 // 模型走后端代理（绕过 COS 跨域限制），其他资源直连 COS（img/audio 不受 CORS 影响）
-export const MODEL_URL = '/api/cos/carnation_opt.glb';
+// 注意：COS CORS 已配好时可改为直连 CDN（更快）
+export const MODEL_URL = 'https://mothersday-1388989467.cos.accelerate.myqcloud.com/carnation_opt.glb';
 
 let _preloadedModel = null;
 

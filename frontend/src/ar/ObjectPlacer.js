@@ -23,8 +23,8 @@ export class ObjectPlacer {
   loadModel(onReady, onProgress, preloadedBuffer) {
     if (this._carnationModel || this.modelReady) return;
 
-    const MAX_RETRIES = 2;
-    const TIMEOUT_MS = 30000;
+    const MAX_RETRIES = 1;
+    const TIMEOUT_MS = 60000;
     const url = MODEL_URL;
 
     const attemptLoad = (retryCount) => {
