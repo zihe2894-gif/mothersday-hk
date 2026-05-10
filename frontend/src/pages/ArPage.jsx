@@ -12,6 +12,7 @@ export default function ArPage({ onExit }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [surfaceDetected, setSurfaceDetected] = useState(false);
   const [modelReady, setModelReady] = useState(false);
+  const [modelProgress, setModelProgress] = useState(0);
 
   const engine = useRef({
     arSession: null,
@@ -122,9 +123,10 @@ export default function ArPage({ onExit }) {
       // 物体放置器 — 开始加载 GLB
       const placer = new ObjectPlacer(setup.scene);
       placer.createReticle();
-      placer.loadModel(() => {
-        setModelReady(true);
-      });
+      placer.loadModel(
+        () => { setModelReady(true); },
+        (pct) => { setModelProgress(pct); }
+      );
       e.placer = placer;
 
       // Hit-test
@@ -233,7 +235,7 @@ export default function ArPage({ onExit }) {
   const statusText = {
     loading: '启动中...',
     scanning: '移动手机扫描地面',
-    ready: surfaceDetected ? (modelReady ? '点击放置康乃馨' : '模型加载中...') : '寻找平面中...',
+    ready: surfaceDetected ? (modelReady ? '点击放置康乃馨' : `模型加载中 ${modelProgress}%`) : '寻找平面中...',
     error: errorMsg || '启动失败',
     unsupported: '该设备不支持 AR',
   }[status] || '';

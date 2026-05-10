@@ -19,7 +19,7 @@ export class ObjectPlacer {
 
   // ── 加载 GLB 模型 ──
 
-  loadModel(onReady) {
+  loadModel(onReady, onProgress) {
     if (this._carnationModel || this.modelReady) return;
     const loader = new GLTFLoader();
     loader.load(
@@ -30,7 +30,12 @@ export class ObjectPlacer {
         this._createPreviewFlower();
         onReady?.();
       },
-      undefined,
+      (xhr) => {
+        if (xhr.lengthComputable) {
+          const pct = Math.round((xhr.loaded / xhr.total) * 100);
+          onProgress?.(pct);
+        }
+      },
       (err) => {
         console.error('GLB 加载失败:', err);
       }
