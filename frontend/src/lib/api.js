@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = 'https://mothersday-production-15d8.up.railway.app/api';
 
 export async function getConfig() {
   const res = await fetch(`${API_BASE}/config`);
