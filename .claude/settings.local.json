@@ -105,7 +105,11 @@
       "Bash(where ngrok *)",
       "Bash(/c/Users/hy/AppData/Roaming/npm/node_modules/ngrok/bin/ngrok.exe http *)",
       "WebFetch(domain:mothersday-production-15d8.up.railway.app)",
-      "Bash(grep -oP '模型加载中 \\\\$\\\\{.?\\\\}')"
+      "Bash(grep -oP '模型加载中 \\\\$\\\\{.?\\\\}')",
+      "Bash(gltf-transform inspect *)",
+      "Bash(gltf-transform draco *)",
+      "Bash(gltf-transform --help)",
+      "Bash(gltf-transform optimize *)"
     ]
   }
 }

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { COS_BASE } from '../lib/assets.js';
 
 const FLOWER_SCALE = 0.3;
@@ -21,9 +22,12 @@ export class ObjectPlacer {
 
   loadModel(onReady, onProgress) {
     if (this._carnationModel || this.modelReady) return;
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     const loader = new GLTFLoader();
+    loader.setDRACOLoader(dracoLoader);
     loader.load(
-      `${COS_BASE}/ca250c8259af49ba6308c94637222ab2.glb`,
+      `${COS_BASE}/carnation_opt.glb`,
       (gltf) => {
         this._carnationModel = gltf.scene;
         this.modelReady = true;

@@ -2,9 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function MusicPlayer({ audioRef }) {
-  const [playing, setPlaying] = useState(
-    () => audioRef?.current ? !audioRef.current.paused : false
-  );
+  const [playing, setPlaying] = useState(false);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -12,11 +10,19 @@ export default function MusicPlayer({ audioRef }) {
     return () => clearTimeout(t);
   }, []);
 
-  // Sync state with actual audio on mount (e.g. after AR exit)
+  // Sync playing state with actual audio events
   useEffect(() => {
-    if (audioRef?.current) {
-      setPlaying(!audioRef.current.paused);
-    }
+    const el = audioRef?.current;
+    if (!el) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    el.addEventListener('play', onPlay);
+    el.addEventListener('pause', onPause);
+    setPlaying(!el.paused);
+    return () => {
+      el.removeEventListener('play', onPlay);
+      el.removeEventListener('pause', onPause);
+    };
   }, [audioRef]);
 
   const toggle = () => {
