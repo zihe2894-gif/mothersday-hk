@@ -101,7 +101,10 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git branch *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(where ngrok *)",
+      "Bash(/c/Users/hy/AppData/Roaming/npm/node_modules/ngrok/bin/ngrok.exe http *)",
+      "WebFetch(domain:mothersday-production-15d8.up.railway.app)"
     ]
   }
 }
