@@ -18,32 +18,73 @@ export class ObjectPlacer {
     this._disposed = false;
   }
 
-  // ── 加载 GLB 模型 ──
+  // ── 加载 GLB 模型（超时重试 + 预加载）──
 
-  loadModel(onReady, onProgress) {
+  loadModel(onReady, onProgress, preloadedBuffer) {
     if (this._carnationModel || this.modelReady) return;
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-    const loader = new GLTFLoader();
-    loader.setDRACOLoader(dracoLoader);
-    loader.load(
-      `${COS_BASE}/carnation_opt.glb`,
-      (gltf) => {
-        this._carnationModel = gltf.scene;
+
+    const MAX_RETRIES = 2;
+    const TIMEOUT_MS = 30000;
+    const url = `${COS_BASE}/carnation_opt.glb`;
+
+    const attemptLoad = (retryCount) => {
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+      const loader = new GLTFLoader();
+      loader.setDRACOLoader(dracoLoader);
+
+      let timedOut = false;
+      const timeoutId = setTimeout(() => {
+        timedOut = true;
+        dracoLoader.dispose();
+        if (retryCount < MAX_RETRIES) {
+          console.warn(`GLB 加载超时，重试 ${retryCount + 1}/${MAX_RETRIES}`);
+          attemptLoad(retryCount + 1);
+        } else {
+          onProgress?.(-1); // -1 表示加载失败
+        }
+      }, TIMEOUT_MS);
+
+      const done = (gltf) => {
+        if (timedOut) return;
+        clearTimeout(timeoutId);
+        this._carnationModel = gltf.scene || gltf;
         this.modelReady = true;
         this._createPreviewFlower();
         onReady?.();
-      },
-      (xhr) => {
-        if (xhr.lengthComputable) {
-          const pct = Math.round((xhr.loaded / xhr.total) * 100);
-          onProgress?.(pct);
+      };
+
+      const fail = (err) => {
+        if (timedOut) return;
+        clearTimeout(timeoutId);
+        dracoLoader.dispose();
+        if (retryCount < MAX_RETRIES) {
+          console.warn(`GLB 加载失败，重试 ${retryCount + 1}/${MAX_RETRIES}:`, err?.message);
+          attemptLoad(retryCount + 1);
+        } else {
+          console.error('GLB 加载失败（已重试耗尽）:', err);
+          onProgress?.(-1);
         }
-      },
-      (err) => {
-        console.error('GLB 加载失败:', err);
+      };
+
+      // 有预加载数据 → 直接解析，不走网络
+      if (preloadedBuffer && retryCount === 0) {
+        try {
+          loader.parse(preloadedBuffer, '', done, fail);
+          return;
+        } catch (e) {
+          // parse 失败，回退到网络加载
+        }
       }
-    );
+
+      loader.load(url, done, (xhr) => {
+        if (!timedOut && xhr.lengthComputable && xhr.total) {
+          onProgress?.(Math.round((xhr.loaded / xhr.total) * 100));
+        }
+      }, fail);
+    };
+
+    attemptLoad(0);
   }
 
   // ── 屏幕准星（红点）──

@@ -5,7 +5,7 @@ import BackgroundHearts from './components/BackgroundHearts.jsx';
 import Petals from './components/Petals.jsx';
 import MusicPlayer from './components/MusicPlayer.jsx';
 import ShareButton from './components/ShareButton.jsx';
-import { COS_BASE } from './lib/assets.js';
+import { COS_BASE, preloadModel } from './lib/assets.js';
 
 export default function App() {
   const [mode, setMode] = useState('entry'); // entry | card | ar
@@ -92,7 +92,7 @@ export default function App() {
             <p className="text-pink-400/40 text-xs font-serif mb-8 text-center leading-relaxed">
               点击打开贺卡<br />看完后在最后一页进入 AR 空间
             </p>
-            <button onClick={() => setMode('card')}
+            <button onClick={() => { setMode('card'); preloadModel(`${COS_BASE}/carnation_opt.glb`); }}
               style={{
                 padding: '16px 52px', fontSize: '20px', borderRadius: '999px',
                 background: 'linear-gradient(135deg, #ff4466, #ff6ba8)',

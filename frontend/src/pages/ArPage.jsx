@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
+import { consumePreloadedModel } from '../lib/assets.js';
 import { ArSession } from '../ar/ArSession.js';
 import { SceneSetup } from '../ar/SceneSetup.js';
 import { ObjectPlacer } from '../ar/ObjectPlacer.js';
@@ -13,6 +14,7 @@ export default function ArPage({ onExit }) {
   const [surfaceDetected, setSurfaceDetected] = useState(false);
   const [modelReady, setModelReady] = useState(false);
   const [modelProgress, setModelProgress] = useState(0);
+  const [modelLoadFailed, setModelLoadFailed] = useState(false);
 
   const engine = useRef({
     arSession: null,
@@ -120,12 +122,22 @@ export default function ArPage({ onExit }) {
       const refSpace = setup.getReferenceSpace();
       e.refSpace = refSpace;
 
-      // 物体放置器 — 开始加载 GLB
+      // 物体放置器 — 开始加载 GLB（优先使用预加载数据）
       const placer = new ObjectPlacer(setup.scene);
       placer.createReticle();
+      setModelLoadFailed(false);
+      setModelProgress(0);
       placer.loadModel(
         () => { setModelReady(true); },
-        (pct) => { setModelProgress(pct); }
+        (pct) => {
+          if (pct === -1) {
+            setModelProgress(0);
+            setModelLoadFailed(true); // 加载失败，显示重试按钮
+          } else {
+            setModelProgress(pct);
+          }
+        },
+        consumePreloadedModel() // 从 App 预加载的 buffer，没有则为 null
       );
       e.placer = placer;
 
@@ -232,10 +244,14 @@ export default function ArPage({ onExit }) {
     return () => overlay.removeEventListener('pointerup', handler);
   }, []);
 
+  const loadLabel = modelLoadFailed
+    ? '加载失败，点击重试'
+    : (modelReady ? '点击放置康乃馨' : `模型加载中 ${modelProgress}%`);
+
   const statusText = {
     loading: '启动中...',
     scanning: '移动手机扫描地面',
-    ready: surfaceDetected ? (modelReady ? '点击放置康乃馨' : `模型加载中 ${modelProgress}%`) : '寻找平面中...',
+    ready: surfaceDetected ? loadLabel : '寻找平面中...',
     error: errorMsg || '启动失败',
     unsupported: '该设备不支持 AR',
   }[status] || '';
@@ -292,8 +308,26 @@ export default function ArPage({ onExit }) {
             <span style={{
               fontSize: '13px', fontWeight: 600, color: statusColor,
               textShadow: '0 1px 4px rgba(0,0,0,0.5)',
-              fontFamily: '"Noto Serif SC", serif',
-            }}>
+              fontFamily: '"Noto Serif SC", serif', cursor: modelLoadFailed ? 'pointer' : 'default',
+            }}
+              onClick={() => {
+                if (modelLoadFailed) {
+                  const placer = engine.current.placer;
+                  if (placer) {
+                    setModelLoadFailed(false);
+                    setModelProgress(0);
+                    placer.loadModel(
+                      () => setModelReady(true),
+                      (pct) => {
+                        if (pct === -1) { setModelProgress(0); setModelLoadFailed(true); }
+                        else setModelProgress(pct);
+                      },
+                      consumePreloadedModel()
+                    );
+                  }
+                }
+              }}
+            >
               ● {statusText}
             </span>
           )}
@@ -335,15 +369,34 @@ export default function ArPage({ onExit }) {
             <div style={{
               position: 'absolute', bottom: '100px',
               left: '50%', transform: 'translateX(-50%)',
-              background: 'rgba(0,0,0,0.6)',
+              background: modelLoadFailed ? 'rgba(239,83,80,0.9)' : 'rgba(0,0,0,0.6)',
               color: '#fff', padding: '10px 24px', borderRadius: '24px',
               fontSize: '14px', backdropFilter: 'blur(8px)',
               whiteSpace: 'nowrap',
               fontFamily: '"Noto Serif SC", serif',
-              pointerEvents: 'none',
-            }}>
+              pointerEvents: modelLoadFailed ? 'auto' : 'none',
+              cursor: modelLoadFailed ? 'pointer' : 'default',
+            }}
+              onClick={() => {
+                if (modelLoadFailed) {
+                  const placer = engine.current.placer;
+                  if (placer) {
+                    setModelLoadFailed(false);
+                    setModelProgress(0);
+                    placer.loadModel(
+                      () => setModelReady(true),
+                      (pct) => {
+                        if (pct === -1) { setModelProgress(0); setModelLoadFailed(true); }
+                        else setModelProgress(pct);
+                      },
+                      consumePreloadedModel()
+                    );
+                  }
+                }
+              }}
+            >
               {status === 'ready'
-                ? (modelReady ? '点击屏幕放置康乃馨' : '模型加载中...')
+                ? (modelLoadFailed ? '加载失败，点击重试' : (modelReady ? '点击屏幕放置康乃馨' : '模型加载中...'))
                 : '移动手机扫描地面...'}
             </div>
 
